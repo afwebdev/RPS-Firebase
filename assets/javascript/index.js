@@ -40,11 +40,14 @@ $(document).ready(function() {
 			if (sv.player1Active === "true" && sv.player2Active === "true") {
 				//Start game, both players are present.
 				console.log("2 PLAYERSSSS");
+				checkReady();
 			} else if (sv.player1Active === "true") {
+				$("player form button").attr("disabled", true);
 				// ** PLAYER2 LEFT, OR HAS NOT CONNECTED **
 				//Player 1 is the only player who is active,  Build Lobby.
 				console.log("Only 1 player present, and its player 1");
 			} else if (sv.player2Active === "true") {
+				$("player form button").attr("disabled", true);
 				console.log("Only 1 player is present and its player 2");
 			}
 		},
@@ -56,16 +59,57 @@ $(document).ready(function() {
 
 	const lobby = function() {
 		$(".container").append(`
-		<div id="lobby" >
-			
-		</div>`);
+	<div id="lobby">
+		<div id="player">
+			<form>
+				<button disabled id="rock">Rock</button>
+				<button disabled id="paper">Paper</button>
+				<button disabled id="scissors">Scissors</button>
+			</form>
+		</div>
+		<div id="status">
+			<h2>Waiting For Player</h2>
+		</div>
+		<div id="enemy">
+			<p>Enemy:</p>
+			<h4 class="enemy-name">...</h4>
+		</div>
+	</div>`);
 	};
+
+	//Remove the hands being drawn here. Check for which player is currently playing,
+	//change enemy name to reflect. $('.enemy-name').text('player1/2 name)
+	const checkReady = function() {
+		if (playerX === "player1") {
+			$(".enemy-name").text(p2Name);
+		} else if (playerX === "player2") {
+			$(".enemy-name").text(p1Name);
+		}
+
+		if (p1Active === "true" && p2Active === "true") {
+			$("#player form button").attr("disabled", false);
+			$("#status").html(`
+			<div id="battle">
+				<div class="p1Hand">
+					<img class='hand' src="./assets/img/rock.png" alt="">
+				</div>
+				<div class="p2Hand">
+					<img class="hand" src="./assets/img/paper.png" alt="">
+				</div>
+			</div>
+		`);
+		}
+	};
+
+	$(".container").on("click", "button", function(e) {
+		e.preventDefault();
+		console.log(this);
+	});
 
 	$("#start").on("click", function(e) {
 		e.preventDefault();
 		input = $("#name").val();
 
-		//user entered input, remove intro (login) screen
 		if (input !== true) {
 			$("#name").attr("placeholder", "..you got a name?");
 		}
@@ -73,13 +117,14 @@ $(document).ready(function() {
 		//Check if player1 is active in the database, if its not, set player1Name to name, and status to active.
 		if (p1Active === "undefined" && input.length >= 4) {
 			$(".intro").remove();
-			console.log("HELLo");
+			lobby();
 			playerX = "player1";
 			database.ref().update({
 				player1Name: input,
 				player1Active: "true"
 			});
 		} else if (p2Active === "undefined" && input.length >= 4) {
+			lobby();
 			$(".intro").remove();
 			playerX = "player2";
 			database.ref().update({
@@ -92,6 +137,7 @@ $(document).ready(function() {
 		}
 	}); //End On Click, End of LOGIN BUTTON CLICK.
 
+	//Player has left game.
 	$(window).on("unload", function() {
 		if (playerX != undefined) {
 			database

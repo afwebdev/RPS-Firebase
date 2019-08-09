@@ -27,8 +27,13 @@ html {
 	margin-top: 0.5em;
 }
 
-#player1,
-#player2,
+#enemy {
+	justify-content: center;
+	flex-direction: column;
+}
+
+#player,
+#enemy,
 #status {
 	display: flex;
 	text-align: center;
@@ -37,12 +42,32 @@ html {
 	height: 100%;
 }
 
-#player1 form button,
-#player2 form button {
+#player form button {
 	margin: 1em;
 	padding: 1em;
 }
 
 #status h2 {
 	width: 100%;
+}
+
+.hand {
+	height: 10em;
+	width: 10em;
+}
+
+#status {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+button {
+	background-color: black;
+	color: white;
+	border: 1px solid white;
+}
+
+button:disabled {
+	text-decoration: line-through;
 }
