@@ -42,12 +42,12 @@ $(document).ready(function() {
 				console.log("2 PLAYERSSSS");
 				checkReady();
 			} else if (sv.player1Active === "true") {
-				$("player form button").attr("disabled", true);
+				$("#player form button").attr("disabled", true);
 				// ** PLAYER2 LEFT, OR HAS NOT CONNECTED **
 				//Player 1 is the only player who is active,  Build Lobby.
 				console.log("Only 1 player present, and its player 1");
 			} else if (sv.player2Active === "true") {
-				$("player form button").attr("disabled", true);
+				$("#player form button").attr("disabled", true);
 				console.log("Only 1 player is present and its player 2");
 			}
 		},
@@ -91,10 +91,8 @@ $(document).ready(function() {
 			$("#status").html(`
 			<div id="battle">
 				<div class="p1Hand">
-					<img class='hand' src="./assets/img/rock.png" alt="">
 				</div>
 				<div class="p2Hand">
-					<img class="hand" src="./assets/img/paper.png" alt="">
 				</div>
 			</div>
 		`);
