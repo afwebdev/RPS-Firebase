@@ -9,11 +9,12 @@ $(document).ready(function() {
 	let enemyHand;
 
 	let winner;
-
 	let playerX;
 
 	let p1Active;
 	let p2Active;
+
+	let intervalID;
 
 	// Firebase configuration
 	let config = {
@@ -45,24 +46,28 @@ $(document).ready(function() {
 			p2Active = sv.player2Active;
 			p1Hand = sv.player1Hand;
 			p2Hand = sv.player2Hand;
+			p1Wins = sv.player1Wins;
+			p2Wins = sv.player2Wins;
+			p1Loss = sv.player1Loss;
+			p2Loss = sv.player2Loss;
 
 			//Both players have picked a hand now.
 			if (p1Hand !== "undefined" && p2Hand !== "undefined") {
 				//Display Player hand
 				$(`.player`).html(
-					`<img src="./assets/img/${chosenHand}.png"><span>${chosenHand}</span>`
+					`<img id="player-hand" src="./assets/img/${chosenHand}.png"><span>${chosenHand}</span>`
 				);
 
 				//Display enemy hand
 				if (playerX === "player1") {
 					enemyHand = p2Hand;
 					$(`.enemy`).html(
-						`<img src="./assets/img/${p2Hand}.png"><span>${p2Hand}</span>`
+						`<img id="enemy-hand" src="./assets/img/${p2Hand}.png"><span>${p2Hand}</span>`
 					);
 				} else if (playerX === "player2") {
 					enemyHand = p1Hand;
 					$(`.enemy`).html(
-						`<img src="./assets/img/${p1Hand}.png"><span>${p1Hand}</span>`
+						`<img id="enemy-hand" src="./assets/img/${p1Hand}.png"><span>${p1Hand}</span>`
 					);
 				}
 
@@ -74,7 +79,7 @@ $(document).ready(function() {
 				//2 Active players are present.
 				//Start game, both players are present.
 				console.log("2 PLAYERSSSS");
-				checkReady(); //RUNS EVERYTIME DB UPDATES A NEW VALUE
+				checkReady(); //RUNS EVERYTIME DB UPDATES A NEW VALUE, and 2P are present.
 			} else if (sv.player1Active === "true") {
 				// ** PLAYER2 LEFT, OR HAS NOT CONNECTED **
 				//Player 1 is the only player who is active,  Build Lobby.
@@ -88,6 +93,21 @@ $(document).ready(function() {
 			console.log("Read from DB Failed: " + errorObject.code);
 		}
 	);
+
+	const newGame = function() {
+		database.ref().update({
+			[`${playerX}Hand`]: "undefined",
+			[`${playerX}Wins`]: 0,
+			[`${playerX}Loss`]: 0
+		});
+		lobby();
+	};
+
+	const updateScores = function() {
+		database.ref().update({
+			[`${playerX}Wins`]: 0
+		});
+	};
 
 	//Function Declarations
 
@@ -115,11 +135,21 @@ $(document).ready(function() {
 				`<div class="announcement"><h5 class="message">ENEMY WON</h5></div>`
 			);
 		}
-		return winner;
+		let timer = 5;
+		intervalID = setInterval(function() {
+			if (timer <= 0) {
+				//timer is 0, clear Interval, log stats, start new game.
+				clearInterval(intervalID);
+				newGame();
+			}
+			//Countdown on DOM.
+			console.log(timer);
+			timer--;
+		}, 1000);
 	};
 
 	const lobby = function() {
-		$(".container").append(`
+		$(".container").html(`
 	<div id="lobby">
 		<div id="player">
 			<form>
@@ -140,6 +170,7 @@ $(document).ready(function() {
 			<h4 class="enemy-name">...</h4>
 		</div>
 	</div>`);
+		checkReady();
 	};
 
 	const checkReady = function() {
@@ -172,7 +203,7 @@ $(document).ready(function() {
 	//Start Button
 	$("#start").on("click", function(e) {
 		e.preventDefault();
-		input = $("#name").val();
+		let input = $("#name").val();
 
 		if (input !== true) {
 			$("#name").attr("placeholder", "..you got a name?");
