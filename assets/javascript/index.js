@@ -2,6 +2,14 @@ $(document).ready(function() {
 	let p1Name;
 	let p2Name;
 
+	let p1Hand;
+	let p2Hand;
+
+	let chosenHand;
+	let enemyHand;
+
+	let winner;
+
 	let playerX;
 
 	let p1Active;
@@ -35,40 +43,97 @@ $(document).ready(function() {
 			p2Name = sv.player2Name;
 			p1Active = sv.player1Active;
 			p2Active = sv.player2Active;
+			p1Hand = sv.player1Hand;
+			p2Hand = sv.player2Hand;
 
-			//2 Active players are present.
+			//Both players have picked a hand now.
+			if (p1Hand !== "undefined" && p2Hand !== "undefined") {
+				//Display Player hand
+				$(`.player`).html(
+					`<img src="./assets/img/${chosenHand}.png"><span>${chosenHand}</span>`
+				);
+
+				//Display enemy hand
+				if (playerX === "player1") {
+					enemyHand = p2Hand;
+					$(`.enemy`).html(
+						`<img src="./assets/img/${p2Hand}.png"><span>${p2Hand}</span>`
+					);
+				} else if (playerX === "player2") {
+					enemyHand = p1Hand;
+					$(`.enemy`).html(
+						`<img src="./assets/img/${p1Hand}.png"><span>${p1Hand}</span>`
+					);
+				}
+
+				whoWon(chosenHand, enemyHand);
+			}
+
 			if (sv.player1Active === "true" && sv.player2Active === "true") {
+				//Debug logging. CLEAN UP LATER
+				//2 Active players are present.
 				//Start game, both players are present.
 				console.log("2 PLAYERSSSS");
-				checkReady();
+				checkReady(); //RUNS EVERYTIME DB UPDATES A NEW VALUE
 			} else if (sv.player1Active === "true") {
-				$("#player form button").attr("disabled", true);
 				// ** PLAYER2 LEFT, OR HAS NOT CONNECTED **
 				//Player 1 is the only player who is active,  Build Lobby.
 				console.log("Only 1 player present, and its player 1");
 			} else if (sv.player2Active === "true") {
-				$("#player form button").attr("disabled", true);
 				console.log("Only 1 player is present and its player 2");
 			}
 		},
 		function(errorObject) {
-			// In case of error this will print the error
+			//Log DB error
 			console.log("Read from DB Failed: " + errorObject.code);
 		}
 	);
+
+	//Function Declarations
+
+	const whoWon = function(playerHand, enemyHand) {
+		//Player Won
+		if (
+			(playerHand === "rock" && enemyHand === "scissors") ||
+			(playerHand === "paper" && enemyHand === "rock") ||
+			(playerHand === "scissors" && enemyHand === "paper")
+		) {
+			winner = playerX;
+			//EDIT THE DOM TO SHOW THAT PLAYER WON
+			$("#status").append(
+				`<div class="announcement"><h5 class="message">YOU WON</h5></div>`
+			);
+			//Player lost. The player num who won is.
+		} else {
+			if (playerX === "player1") {
+				winner = "player2";
+			} else if (playerX === "player2") {
+				winner = "player1";
+			}
+			//EDIT THE DOM TO SHOW THAT ENEMY WON.
+			$("#status").append(
+				`<div class="announcement"><h5 class="message">ENEMY WON</h5></div>`
+			);
+		}
+		return winner;
+	};
 
 	const lobby = function() {
 		$(".container").append(`
 	<div id="lobby">
 		<div id="player">
 			<form>
-				<button disabled id="rock">Rock</button>
-				<button disabled id="paper">Paper</button>
-				<button disabled id="scissors">Scissors</button>
+				<button data-hand="rock">Rock</button>
+				<button data-hand="paper">Paper</button>
+				<button data-hand="scissors">Scissors</button>
 			</form>
 		</div>
 		<div id="status">
-			<h2>Waiting For Player</h2>
+			<div id="battle">
+				<h2 id='waiting'>Waiting For Player</h2>
+				<div class="player"></div>
+				<div class="enemy"></div>
+			</div>
 		</div>
 		<div id="enemy">
 			<p>Enemy:</p>
@@ -77,33 +142,34 @@ $(document).ready(function() {
 	</div>`);
 	};
 
-	//Remove the hands being drawn here. Check for which player is currently playing,
-	//change enemy name to reflect. $('.enemy-name').text('player1/2 name)
 	const checkReady = function() {
+		//remove waiting for player screen.
+		if (p1Active !== "undefined" && p2Active !== "undefined") {
+			$("#waiting").remove();
+		}
+
+		//Set enemy name
 		if (playerX === "player1") {
 			$(".enemy-name").text(p2Name);
 		} else if (playerX === "player2") {
 			$(".enemy-name").text(p1Name);
 		}
-
-		if (p1Active === "true" && p2Active === "true") {
-			$("#player form button").attr("disabled", false);
-			$("#status").html(`
-			<div id="battle">
-				<div class="p1Hand">
-				</div>
-				<div class="p2Hand">
-				</div>
-			</div>
-		`);
-		}
 	};
 
+	//Click handlers
+	//user clicked a hand button
 	$(".container").on("click", "button", function(e) {
 		e.preventDefault();
-		console.log(this);
+		let hand = this.dataset.hand;
+		chosenHand = hand;
+
+		database.ref().update({
+			[`${playerX}Hand`]: hand
+		});
+		$("#player form button").attr("disabled", true);
 	});
 
+	//Start Button
 	$("#start").on("click", function(e) {
 		e.preventDefault();
 		input = $("#name").val();
@@ -135,6 +201,7 @@ $(document).ready(function() {
 		}
 	}); //End On Click, End of LOGIN BUTTON CLICK.
 
+	//Player disconnect. Revert variables in DB to clean slate for current player.
 	//Player has left game.
 	$(window).on("unload", function() {
 		if (playerX != undefined) {

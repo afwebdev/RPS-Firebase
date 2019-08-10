@@ -17,7 +17,7 @@ html {
 }
 
 #lobby {
-	height: 100%;
+	height: 50%;
 	margin-top: 2em;
 	display: flex;
 	flex-direction: row;
@@ -58,6 +58,7 @@ html {
 
 #status {
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	width: 100%;
 }
@@ -70,4 +71,18 @@ button {
 
 button:disabled {
 	text-decoration: line-through;
+}
+
+#battle {
+	display: flex;
+}
+
+.player img,
+.enemy img {
+	height: 8em;
+	width: 8em;
+}
+
+.message {
+	width: 100%;
 }
