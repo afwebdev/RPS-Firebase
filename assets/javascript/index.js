@@ -135,6 +135,7 @@ $(document).ready(function() {
 				`<div class="announcement"><h5 class="message">ENEMY WON</h5></div>`
 			);
 		}
+
 		let timer = 5;
 		intervalID = setInterval(function() {
 			if (timer <= 0) {
@@ -160,7 +161,7 @@ $(document).ready(function() {
 		</div>
 		<div id="status">
 			<div id="battle">
-				<h2 id='waiting'>Waiting For Player</h2>
+				<h2 id='status-msg'></h2>
 				<div class="player"></div>
 				<div class="enemy"></div>
 			</div>
@@ -170,24 +171,31 @@ $(document).ready(function() {
 			<h4 class="enemy-name">...</h4>
 		</div>
 	</div>`);
-		//Small timer to allow sync, so player doesnt start before other.
+
+		//Small timer to allow sync, so player doesnt start before other after subsequent games.
 		setTimeout(function() {
 			$("#player-buttons form button").attr("disabled", false);
+			checkReady();
 		}, 2000);
-		checkReady();
+	};
+
+	const setStatus = function() {
+		if (p1Active === "true" && p2Active === "true") {
+			return "Throw!";
+		} else {
+			return "Waiting For Player.";
+		}
 	};
 
 	const checkReady = function() {
 		//remove waiting for player screen.
 		if (p1Active !== "undefined" && p2Active !== "undefined") {
-			$("#waiting").remove();
-		}
-
-		//Set enemy name
-		if (playerX === "player1") {
-			$(".enemy-name").text(p2Name);
-		} else if (playerX === "player2") {
-			$(".enemy-name").text(p1Name);
+			//Set enemy name
+			if (playerX === "player1") {
+				$(".enemy-name").text(p2Name);
+			} else if (playerX === "player2") {
+				$(".enemy-name").text(p1Name);
+			}
 		}
 	};
 
@@ -231,6 +239,7 @@ $(document).ready(function() {
 				player2Active: "true"
 			});
 		} else {
+			//falls here if more than 2 players attempt to connect.
 			$("#name").val("");
 			$("#name").attr("placeholder", "Enter a name 4+ char long");
 		}
@@ -240,14 +249,11 @@ $(document).ready(function() {
 	//Player has left game.
 	$(window).on("unload", function() {
 		if (playerX != undefined) {
-			database
-				.ref()
-				.onDisconnect()
-				.update({
-					[`${playerX}Active`]: "undefined",
-					[`${playerX}Name`]: "undefined",
-					[`${playerX}Hand`]: "undefined"
-				});
+			database.ref().update({
+				[`${playerX}Active`]: "undefined",
+				[`${playerX}Name`]: "undefined",
+				[`${playerX}Hand`]: "undefined"
+			});
 		}
 	});
 });
