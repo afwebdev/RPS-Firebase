@@ -89,7 +89,7 @@ $(document).ready(function() {
 			}
 		},
 		function(errorObject) {
-			//Log DB error
+			//Log DB errors
 			console.log("Read from DB Failed: " + errorObject.code);
 		}
 	);
