@@ -151,11 +151,11 @@ $(document).ready(function() {
 	const lobby = function() {
 		$(".container").html(`
 	<div id="lobby">
-		<div id="player">
+		<div id="player-buttons">
 			<form>
-				<button data-hand="rock">Rock</button>
-				<button data-hand="paper">Paper</button>
-				<button data-hand="scissors">Scissors</button>
+				<button disabled data-hand="rock">Rock</button>
+				<button disabled data-hand="paper">Paper</button>
+				<button disabled data-hand="scissors">Scissors</button>
 			</form>
 		</div>
 		<div id="status">
@@ -170,6 +170,10 @@ $(document).ready(function() {
 			<h4 class="enemy-name">...</h4>
 		</div>
 	</div>`);
+		//Small timer to allow sync, so player doesnt start before other.
+		setTimeout(function() {
+			$("#player-buttons form button").attr("disabled", false);
+		}, 2000);
 		checkReady();
 	};
 
@@ -197,7 +201,7 @@ $(document).ready(function() {
 		database.ref().update({
 			[`${playerX}Hand`]: hand
 		});
-		$("#player form button").attr("disabled", true);
+		$("#player-buttons form button").attr("disabled", true);
 	});
 
 	//Start Button
